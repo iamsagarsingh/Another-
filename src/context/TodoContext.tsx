@@ -1,4 +1,5 @@
 import { Dispatch, ReactNode, createContext, useContext, useReducer } from "react";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 
 interface TodoContextProps{
     state:DefaultTypes,
@@ -13,11 +14,11 @@ export interface TodoType {
     todoColor:string
 }
 
-interface DefaultTypes{
+export interface DefaultTypes{
     todos: TodoType[]
 }
 
-interface ActionType{
+export interface ActionType{
     type:string,
     payload:TodoType | string | number
 }
@@ -62,7 +63,7 @@ const defaultValue : DefaultTypes = {
 }
 
 export const TodoContextProvider = ({children}:TodoChildren) => {
-    const [state,dispatch] = useReducer(reducer,defaultValue)
+    const [state,dispatch] = useLocalStorage('todo',reducer,defaultValue)
     return <todoContext.Provider value={{state,dispatch}}>
         {children}
     </todoContext.Provider>
