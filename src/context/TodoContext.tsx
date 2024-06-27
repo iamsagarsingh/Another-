@@ -1,17 +1,76 @@
-import { ReactNode, createContext, useContext } from "react";
+import { Dispatch, ReactNode, createContext, useContext, useReducer } from "react";
 
-const todoContext = createContext({})
+interface TodoContextProps{
+    state:DefaultTypes,
+    dispatch: Dispatch<ActionType>
+}
 
-interface todoChildren{
+const todoContext = createContext({} as TodoContextProps)
+
+export interface TodoType {
+    id:number;
+    todoDesc:string;
+    todoColor:string
+}
+
+interface DefaultTypes{
+    todos: TodoType[]
+}
+
+interface ActionType{
+    type:string,
+    payload:TodoType | string | number
+}
+
+interface TodoChildren{
     children: ReactNode
 }
 
-export const TodoContextProvider = ({children}:todoChildren) => {
-    return <todoContext.Provider value={{}}>
+const reducer = (state:DefaultTypes,action:ActionType) : DefaultTypes => {
+    if(action.type === 'addTodos'){
+        if(typeof action.payload === 'object') return {...state,todos:[...state.todos,action.payload]}
+    }
+    else if(action.type === 'removeTodo'){
+        if(typeof action.payload === 'number'){
+        const newList:TodoType[] = state.todos.filter(todo=>{
+            return todo.id!== action.payload
+        })
+        return {...state,todos:newList}
+    }
+    }
+    else if(action.type === 'updateTodo'){
+        if(typeof action.payload === 'object' && 'id' in action.payload && 'todoDesc' in action.payload && 'todoColor' in action.payload){
+            const updatedTodo = action.payload
+            const newList:TodoType[] = state.todos.map(todo => {        
+                if(todo.id === updatedTodo.id){
+                    return {...todo,...updatedTodo}
+                }
+                else{
+                    return todo
+                }
+            })
+            return {...state,todos:newList}
+        }
+        return {...state}
+        
+    }
+    return {...state}
+}
+
+const defaultValue : DefaultTypes = {
+    todos: []
+}
+
+export const TodoContextProvider = ({children}:TodoChildren) => {
+    const [state,dispatch] = useReducer(reducer,defaultValue)
+    return <todoContext.Provider value={{state,dispatch}}>
         {children}
     </todoContext.Provider>
 }
 
-export const useTodo = ()=>{
-    return useContext(todoContext)
+
+
+export function useTodo(){
+    const context =  useContext(todoContext)
+    return context
 }
